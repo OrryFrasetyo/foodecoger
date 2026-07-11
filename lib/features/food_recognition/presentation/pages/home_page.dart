@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:submission/features/food_recognition/presentation/pages/camera_page.dart';
 import 'package:submission/features/food_recognition/presentation/pages/result_page.dart';
 import 'package:submission/features/food_recognition/presentation/providers/home_provider.dart';
 
@@ -11,7 +14,22 @@ class HomePage extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text('Food Recognizer App'),
+        title: const Text(
+          'Food Recognizer App',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const CameraPage()),
+              );
+            },
+            icon: const Icon(Icons.camera_alt),
+            tooltip: 'Live Camera',
+          ),
+        ],
       ),
       body: const SafeArea(
         child: Padding(padding: EdgeInsets.all(8.0), child: _HomeBody()),
@@ -35,13 +53,11 @@ class _HomeBody extends ConsumerWidget {
           child: Center(
             child: GestureDetector(
               onTap: () {
-                // todo-01: tap this icon to open image picker feature
-                // Nanti kita panggil fungsi dari image_picker di sini
-                // dan update state: ref.read(selectedImageProvider.notifier).state = pathBaru;
+                ref.read(selectedImageProvider.notifier).pickImageFromGallery();
               },
               child: imagePath != null
-                  ? Text("Gambar terpilih: $imagePath")
-                  : const Icon(Icons.image, size: 100),
+                  ? Image.file(File(imagePath), fit: BoxFit.cover)
+                  : const Icon(Icons.image, size: 100, color: Colors.grey),
             ),
           ),
         ),
@@ -52,7 +68,10 @@ class _HomeBody extends ConsumerWidget {
               MaterialPageRoute(builder: (context) => const ResultPage()),
             );
           },
-          child: const Text("Analyze"),
+          child: const Text(
+            "Analyze",
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
         ),
       ],
     );
