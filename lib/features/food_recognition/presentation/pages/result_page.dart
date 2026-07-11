@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:submission/widget/classification_item.dart';
+import 'package:submission/features/food_recognition/presentation/widgets/classification_item.dart';
 
 class ResultPage extends StatelessWidget {
   const ResultPage({super.key});
