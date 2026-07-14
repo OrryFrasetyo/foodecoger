@@ -2,9 +2,9 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:submission/features/food_recognition/presentation/pages/camera_page.dart';
-import 'package:submission/features/food_recognition/presentation/pages/result_page.dart';
-import 'package:submission/features/food_recognition/presentation/providers/home_provider.dart';
+import 'camera_page.dart';
+import 'result_page.dart';
+import '../providers/home_provider.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
@@ -63,10 +63,18 @@ class _HomeBody extends ConsumerWidget {
         ),
         FilledButton.tonal(
           onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const ResultPage()),
-            );
+            if (imagePath != null) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ResultPage(imagePath: imagePath),
+                ),
+              );
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Please select an image first!")),
+              );
+            }
           },
           child: const Text(
             "Analyze",
