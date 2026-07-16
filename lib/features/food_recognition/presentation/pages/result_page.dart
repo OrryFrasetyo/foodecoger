@@ -1,57 +1,60 @@
-import 'package:flutter/material.dart';
-import 'package:submission/features/food_recognition/presentation/widgets/classification_item.dart';
+import 'dart:io';
 
-class ResultPage extends StatelessWidget {
-  const ResultPage({super.key});
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/inference_provider.dart';
+import '../widgets/classification_item.dart';
+
+class ResultPage extends ConsumerWidget {
+  final String imagePath;
+
+  const ResultPage({super.key, required this.imagePath});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final classificationState = ref.watch(
+      foodClassificationProvider(imagePath),
+    );
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: const Text('Result Page'),
       ),
-      body: SafeArea(child: const _ResultBody()),
-    );
-  }
-}
-
-class _ResultBody extends StatefulWidget {
-  const _ResultBody();
-
-  @override
-  State<_ResultBody> createState() => _ResultBodyState();
-}
-
-class _ResultBodyState extends State<_ResultBody> {
-  @override
-  void initState() {
-    super.initState();
-    Future.microtask(() {
-      // todo-02: run the inference model based on user picture
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      spacing: 8,
-      children: [
-        Expanded(
-          child: Center(
-            child: Image.network(
-              "https://github.com/dicodingacademy/assets/raw/refs/heads/main/flutter_ml/assets/nasi-lemak.jpg",
-              fit: BoxFit.cover,
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: Center(
+                child: Image.file(File(imagePath), fit: BoxFit.cover),
+              ),
             ),
-          ),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16.0),
+              child: classificationState.when(
+                data: (entity) {
+                  return ClassificatioinItem(
+                    item: entity.foodName,
+                    value: entity.confidence,
+                  );
+                },
+                loading: () => const ClassificatioinItemShimmer(),
+                error: (error, stackTrace) {
+                  return Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Text(
+                      "Error analyzing image: $error",
+                      style: const TextStyle(color: Colors.red),
+                      textAlign: TextAlign.center,
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16.0),
-          // todo-03: show the inference result (food name and the confidence score)
-          child: ClassificatioinItem(item: "Nasi Lemak", value: "89.58%"),
-        ),
-      ],
+      ),
     );
   }
 }
