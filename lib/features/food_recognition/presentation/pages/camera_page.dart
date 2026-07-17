@@ -1,7 +1,9 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:submission/features/food_recognition/presentation/providers/camera_provider.dart';
+import 'package:image_cropper/image_cropper.dart';
+import 'package:submission/features/food_recognition/presentation/pages/result_page.dart';
+import '../providers/camera_provider.dart';
 
 class CameraPage extends ConsumerWidget {
   const CameraPage({super.key});
@@ -25,20 +27,75 @@ class CameraPage extends ConsumerWidget {
             fit: StackFit.expand,
             children: [
               CameraPreview(controller),
-              const Positioned(
-                bottom: 30,
+              Positioned(
+                bottom: 40,
                 left: 0,
                 right: 0,
-                child: Center(
-                  child: Text(
-                    "Scanning for food...",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      backgroundColor: Colors.black54,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      "Arahkan ke makanan",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        backgroundColor: Colors.black54,
+                      ),
                     ),
-                  ),
+                    SizedBox(height: 20),
+
+                    FloatingActionButton(
+                      backgroundColor: Colors.deepOrange,
+                      shape: CircleBorder(),
+                      onPressed: () async {
+                        if (!controller.value.isInitialized) return;
+
+                        try {
+                          final XFile rawImage = await controller.takePicture();
+
+                          CroppedFile? croppedFile = await ImageCropper()
+                              .cropImage(
+                                sourcePath: rawImage.path,
+                                aspectRatio: const CropAspectRatio(
+                                  ratioX: 1,
+                                  ratioY: 1,
+                                ),
+                                uiSettings: [
+                                  AndroidUiSettings(
+                                    toolbarTitle: 'Crop Food Image',
+                                    toolbarColor: Colors.deepOrange,
+                                    toolbarWidgetColor: Colors.white,
+                                    initAspectRatio:
+                                        CropAspectRatioPreset.square,
+                                    lockAspectRatio: true,
+                                  ),
+                                  IOSUiSettings(title: 'Crop Food Image'),
+                                ],
+                              );
+
+                          if (croppedFile != null) {
+                            if (context.mounted) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      ResultPage(imagePath: croppedFile.path),
+                                ),
+                              );
+                            }
+                          }
+                        } catch (e) {
+                          debugPrint("Error taking picture: $e");
+                        }
+                      },
+                      child: Icon(
+                        Icons.camera_alt,
+                        color: Colors.white,
+                        size: 32,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
